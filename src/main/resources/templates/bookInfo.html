@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>图书信息</title>
+    <style>
+        #tab {
+            border: 1px solid crimson;
+            width: 700px;
+        }
+
+        #tab td {
+            border: 1px solid crimson;
+            text-align: center;
+            height: 60px;
+        }
+
+        #addBookInfo {
+            border: 1px solid crimson;
+            width: 300px;
+            height: 150px;
+            line-height: 35px;
+            padding-left: 45px;
+            display: none;
+            position: absolute;
+            left: 800px;
+            top: 300px;
+        }
+
+        #editBookInfo {
+            border: 1px solid crimson;
+            width: 300px;
+            height: 187px;
+            line-height: 35px;
+            padding-left: 45px;
+            display: none;
+            position: absolute;
+            left: 800px;
+            top: 100px;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <button id="addBook">添加图书</button>
+    <button><a href="/user/toLogin">用户登录</a></button>
+    <button><a href="/user/logout">退出登录</a></button>
+    <br/>
+
+    <div id="addBookInfo">
+        图书名称：<input type="text" id="bookName"/><br/>
+        图书库存：<input type="text" id="bookStore"/><br/>
+        图书价格：<input type="text" id="bookPrice"/><br/>
+        <button id="sure">确定</button>
+        <button id="notSure">取消</button>
+    </div>
+</div>
+<div id="editBookInfo">
+    图书编号:<input type="text" id="bookIdEdit" readonly/><br/>
+    图书名称：<input type="text" id="bookNameEdit"/><br/>
+    图书库存：<input type="text" id="bookStoreEdit"/><br/>
+    图书价格：<input type="text" id="bookPriceEdit"/><br/>
+    <button id="sureEdit">确定</button>
+    <button id="notSureEdit">取消</button>
+</div>
+<table id="tab" cellspacing="1">
+    <tr>
+        <td>图书编号</td>
+        <td>图书名称</td>
+        <td>图书库存</td>
+        <td>图书价格</td>
+        <td>操作</td>
+    </tr>
+    <tr th:each="book,index:${bookList}">
+        <td th:text="${index.count}"></td>
+        <td th:text="${book.bookName}"></td>
+        <td th:text="${book.bookStore}"></td>
+        <td th:text="${book.bookPrice}"></td>
+        <td>
+            <a href="/book/bookInfoEdit">修改</a>
+            <a href="/book/bookInfoDelete">删除</a>
+        </td>
+    </tr>
+</table>
+</body>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script type="text/javascript">
+    $(function () {
+
+        $("#addBook").click(function () {
+            $("#addBookInfo").css("display", "block");
+        })
+
+        $("#sure").click(function () {
+            $.ajax({
+                type: "post",
+                url: "bookInfoAdd",
+                data: {
+                    bookName: $("#bookName").val(),
+                    bookStore: $("#bookStore").val(),
+                    bookPrice: $("#bookPrice").val()
+                },
+                dataType: "json",
+                success: function (result) {
+                    alert(result);
+                    if (result != null) {
+                        alert("添加成功");
+                        $("#addBookInfo").css("display", "none");
+                        window.location.reload();
+                    } else {
+                        alert("添加失败，请重新添加");
+                    }
+                }
+            })
+        })
+
+        $("#notSure").click(function () {
+            $("#addBookInfo").css("display", "none");
+        })
+
+        editBookInfo = function(bookId) {
+            $.ajax({
+                type: "post",
+                url: "bookInfoQueryOne",
+                data: {
+                    bookId: bookId
+                },
+                dataType: "json",
+                success: function (result) {
+                    $("#bookIdEdit").val(result.bookId);
+                    $("#bookNameEdit").val(result.bookName);
+                    $("#bookStoreEdit").val(result.bookStore);
+                    $("#bookPriceEdit").val(result.bookPrice);
+                    $("#editBookInfo").css("display", "block");
+                }
+            })
+
+        }
+
+        $("#sureEdit").click(function () {
+            $.ajax({
+                type: "post",
+                url: "bookInfoEdit",
+                data: {
+                    bookId:$("#bookIdEdit").val(),
+                    bookName: $("#bookNameEdit").val(),
+                    bookStore: $("#bookStoreEdit").val(),
+                    bookPrice: $("#bookPriceEdit").val()
+                },
+                dataType: "json",
+                success: function (result) {
+                    if (result != null) {
+                        alert("修改成功");
+                        $("#editBookInfo").css("display", "none");
+                        window.location.reload();
+                    } else {
+                        alert("修改失败，请重新操作");
+                    }
+                }
+            })
+        })
+
+
+        $("#notSureEdit").click(function () {
+            $("#editBookInfo").css("display", "none");
+        })
+
+
+        delBookInfo = function (bookId) {
+            var con = confirm("确认删除么？");
+            if (con) {
+                $.ajax({
+                    url: "bookInfoDelete",
+                    type: "post",
+                    data: {
+                        "bookId": bookId
+                    },
+                    dataType: "json",
+                    success: function (result) {
+                        if (result !=null) {
+                            alert("执行成功");
+                            window.location.reload();
+                        } else {
+                            alert("删除失败");
+                        }
+                    }
+                })
+            }
+        }
+
+    })
+</script>
+</html>
